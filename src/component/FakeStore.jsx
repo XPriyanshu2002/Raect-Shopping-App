@@ -212,7 +212,8 @@ export function FakeStore() {
     return(
         <div className='container-fluid'>
             <div id='Header' className='d-flex justify-content-between bg-black text-white p-2'>
-                <div className='d-flex'><ShoppingBagIcon fontSize='large' sx={{mt:1, mr:1}}/><h1 className='mt-1'>FAKESTORE</h1></div>
+                <div className='d-flex'>
+                <span className='navbar-toggler-icon text-light'></span><ShoppingBagIcon fontSize='large' sx={{mt:1, mr:1}}/><h1 className='mt-1'>FAKESTORE</h1></div>
                 <div className='mt-2'>
                     {
                         categories.map(category=> <Button key={category} component='button' value={category} onClick={handleNavClick} sx={{mx:1}} color='inherit'>{category.toUpperCase()}</Button>)

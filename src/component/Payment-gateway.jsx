@@ -21,9 +21,12 @@ export function PaymentGateway() {
     function LoadPrice() {
         axios.get("http://127.0.0.1:3210/get-products")
         .then(response=>{
-            setPrice(response.data.map(p=>p.price));
+            let price = response.data.map(p=>p.price);
+            setPrice(price);
             //console.log(response.data.map(p=>p.price));
             ProductNumber();
+            let total = price.reduce((t)=>t);
+            console.log(price);
         })
     }
 
@@ -85,16 +88,16 @@ export function PaymentGateway() {
                         )
                     }
                 </div>
-                <div className="col-4 d-flex align-items-center">
-                    <div>
+                <div className="col-4 d-flex align-items-center bg-warning">
+                    <div className="w-100">
                         <h3 className="text-primary mb-5" style={{marginLeft:"200px"}}>RECIPT</h3>
-                        <div className="d-flex">
+                        <div className="d-flex justify-content-center align-items-center w-100">
                             <span className="h5 mt-5 mx-5" id="productNumber"></span>
                             <span className="h5 mt-5 mx-5" id="productPrice"></span>
                         </div>
-                        <div>
-                            <span className="h5 mt-5 mx-5">Grand Total</span>
-                            <span className="h5 mt-5 mx-5">{}</span>
+                        <div className="d-flex justify-content-center align-items-center w-100">
+                            <span className="h3 mt-5 mx-5">Grand Total</span>
+                            <span className="h3 mt-5 mx-5">{}</span>
                         </div>
                     </div>
                 </div>
