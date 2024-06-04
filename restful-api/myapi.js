@@ -27,6 +27,19 @@ app.get("/users", (request, response) => {
       });
   });
 });
+
+app.get("/get-user/:userName",(req,res)=>{
+  mongoClient.connect(conStr)
+  .then(clientObject=>{
+    let dataBase = clientObject.db("online-shopping");
+    dataBase.collection("tblUser").find({UserName:req.params.userName}).toArray()
+    .then(document=>{
+      res.send(document);
+      res.end();
+    })
+  })
+})
+
 app.post("/register-user", (req, res) => {
   var user = {
     UserId: req.body.UserId,
@@ -105,6 +118,29 @@ app.get("/get-products",(req,res)=>{
     });
   });
 });
+// app.put('/edit-user/:id',(req,res)=>{
+//   var id = parseInt(req.params.id);
+//   var user = {
+//       VideoId: parseInt(req.body.VideoId),
+//       CategoryId: parseInt(req.body.CategoryId),
+//       Title: req.body.Title,
+//       Description: req.body.Description,
+//       Url: req.body.Url,
+//       Views: parseInt(req.body.Views),
+//       Likes: parseInt(req.body.Likes),
+//       Dislikes: parseInt(req.body.Dislikes)
+//   }
+
+//   mongoClient.connect(conStr)
+//   .then(clientObject=>{
+//       var dataBase = clientObject.db('video-library');
+//       dataBase.collection('tblVideos').updateOne({VideoId:id},{$set:video})
+//       .then(()=>{
+//           console.log('Video Updated Successfully');
+//           res.end();
+//       });
+//   });
+// });
 
 app.listen(3210);
 console.log("Server started at http://127.0.0.1:3210");

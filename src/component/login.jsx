@@ -51,7 +51,7 @@ export function Login() {
                                 let user = response.data.find(a=> a.UserId===userDetails.UserId);
                                 if (user) {
                                     if (user.Password===userDetails.Password) {
-                                        setCookie("user-id",user.UserName.toUpperCase());
+                                        setCookie("user-id",user.UserName);
                                         navigate("/");
                                     } else {
                                         alert("Invalid Password");
