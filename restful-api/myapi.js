@@ -1,6 +1,7 @@
 var express = require("express");
 var mongoClient = require("mongodb").MongoClient;
 var cors = require("cors");
+const { Email } = require("@mui/icons-material");
 
 var app = express();
 app.use(cors());
@@ -118,29 +119,29 @@ app.get("/get-products",(req,res)=>{
     });
   });
 });
-// app.put('/edit-user/:id',(req,res)=>{
-//   var id = parseInt(req.params.id);
-//   var user = {
-//       VideoId: parseInt(req.body.VideoId),
-//       CategoryId: parseInt(req.body.CategoryId),
-//       Title: req.body.Title,
-//       Description: req.body.Description,
-//       Url: req.body.Url,
-//       Views: parseInt(req.body.Views),
-//       Likes: parseInt(req.body.Likes),
-//       Dislikes: parseInt(req.body.Dislikes)
-//   }
+app.patch('/edit-user/:id',(req,res)=>{
+  id = req.params.UserName
+  var user = {
+      UserName: parseInt(req.body.VideoId),
+      UserId: parseInt(req.body.CategoryId),
+      Title: req.body.Title,
+      Email: req.body.Description,
+      Mobile:req.body.Url,
+      Views: parseInt(req.body.Views),
+      Likes: parseInt(req.body.Likes),
+      Dislikes: parseInt(req.body.Dislikes)
+  }
 
-//   mongoClient.connect(conStr)
-//   .then(clientObject=>{
-//       var dataBase = clientObject.db('video-library');
-//       dataBase.collection('tblVideos').updateOne({VideoId:id},{$set:video})
-//       .then(()=>{
-//           console.log('Video Updated Successfully');
-//           res.end();
-//       });
-//   });
-// });
+  mongoClient.connect(conStr)
+  .then(clientObject=>{
+      var dataBase = clientObject.db('video-library');
+      dataBase.collection('tblVideos').updateOne({VideoId:id},{$set:video})
+      .then(()=>{
+          console.log('Video Updated Successfully');
+          res.end();
+      });
+  });
+});
 
 app.listen(3210);
 console.log("Server started at http://127.0.0.1:3210");

@@ -26,9 +26,9 @@ import {
   ListItemIcon,
   ListItemText,
 } from "@mui/material";
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import LocalMallIcon from '@mui/icons-material/LocalMall';
-import { Delete, Email } from "@mui/icons-material";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import LocalMallIcon from "@mui/icons-material/LocalMall";
+import { Delete, Email, Password } from "@mui/icons-material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
@@ -58,16 +58,28 @@ export function FakeStore() {
   const [allSuggestions, setAllSuggestions] = useState([]);
   var navigate = useNavigate();
   const [cookie, setCookie, removeCookie] = useCookies("user-id");
-  const [user, setuser] = useState([{UserId:"", UserName:"", Email:"", Mobile:""}]);
+  const [user, setuser] = useState([
+    { UserId: "", UserName: "", Email: "", Mobile: "" },
+  ]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [customerCareModalOpen, setCustomerCareModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
-  
+
   const formik = useFormik({
-    initialValues:{UserName:user[0].UserName, UserId:user[0].UserId, Email:user[0].Email, Mobile:user[0].Mobile}
-  })
+    initialValues: {
+      UserName: user[0].UserName,
+      UserId: user[0].UserId,
+      Password:user[0].Password,
+      Email: user[0].Email,
+      Mobile: user[0].Mobile,
+    },
+    enableReinitialize:true,
+    onSubmit:(values) =>{
+      console.log(values)
+    }
+  });
 
   function LoadCategories() {
     axios
@@ -110,7 +122,8 @@ export function FakeStore() {
     //console.log(cookie["user-id"])
     loaduser();
     //console.log(searchItems);
-    LoadUser()
+    LoadUser();
+    console.log(user)
   }, []);
 
   function handleCategoryChange(e) {
@@ -261,19 +274,18 @@ export function FakeStore() {
       .then((response) => {
         let u = response.data;
         setuser(u);
-        console.log(u);
       });
   }
 
   function handleItemButtonClick(e) {
-    if (e==="Profile") {
-        setProfileModalOpen(true);
-    }else if (e==="Order") {
-        setOrderModalOpen(true);
-    }else if (e==="Customer Care") {
-        setCustomerCareModalOpen(true);
-    }else {
-        setLogoutModalOpen(true);
+    if (e === "Profile") {
+      setProfileModalOpen(true);
+    } else if (e === "Order") {
+      setOrderModalOpen(true);
+    } else if (e === "Customer Care") {
+      setCustomerCareModalOpen(true);
+    } else {
+      setLogoutModalOpen(true);
     }
   }
 
@@ -323,57 +335,117 @@ export function FakeStore() {
                     }                        */}
 
           <List>
-            {["Profile", "Order", "Customer Care", "Log Out"].map((text, index) => (
-              <ListItem key={text} disablePadding>
-                <ListItemButton onClick={()=>{handleItemButtonClick(text)}}>
-                  <ListItemIcon>
-                    {index % 2 === 0 ? <AccountCircleIcon  /> : < LocalMallIcon/>}
-                  </ListItemIcon>
-                  <ListItemText primary={text} />
-                </ListItemButton>
-              </ListItem>
-            ))}
+            {["Profile", "Order", "Customer Care", "Log Out"].map(
+              (text, index) => (
+                <ListItem key={text} disablePadding>
+                  <ListItemButton
+                    onClick={() => {
+                      handleItemButtonClick(text);
+                    }}
+                  >
+                    <ListItemIcon>
+                      {index % 2 === 0 ? (
+                        <AccountCircleIcon />
+                      ) : (
+                        <LocalMallIcon />
+                      )}
+                    </ListItemIcon>
+                    <ListItemText primary={text} />
+                  </ListItemButton>
+                </ListItem>
+              )
+            )}
           </List>
         </Drawer>
-        <Modal open={profileModalOpen} onClose={handleAllModalClose} className="d-flex justify-content-center align-items-center">
-            <Fade in={profileModalOpen}>
-                <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75">
-                <form onSubmit={formik.handleSubmit} className="container-fluid">
-                  <div className="row">
-                    <div className="col-3 ms-4">
-                      <h5 className="my-4">User Id</h5>
-                      <h5 className="my-4">User Name</h5>
-                      <h5 className="my-4">Email</h5>
-                      <h5 className="my-4">Mobile</h5>
-                    </div>
-                    <div className="col-8">
-                      <input type="text" value={formik.values.UserName} onChange={formik.handleChange} name="UserName" className="form-control my-3 w-50" />
-                      <input type="text" value={formik.values.UserId} onChange={formik.handleChange} name="UserId" className="form-control my-3 w-50" />
-                      <input type="text" value={formik.values.Email} onChange={formik.handleChange} name="Email" className="form-control my-3 w-50" />
-                      <input type="text" value={formik.values.Mobile} onChange={formik.handleChange} name="Mobile" className="form-control my-3 w-50" />
-                    </div>
+        <Modal
+          open={profileModalOpen}
+          onClose={handleAllModalClose}
+          className="d-flex justify-content-center align-items-center"
+        >
+          <Fade in={profileModalOpen}>
+            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75">
+              <form onSubmit={formik.handleSubmit} className="container-fluid">
+                <div className="row">
+                  <div className="col-3 ms-4">
+                    <h5 className="my-4">User Id</h5>
+                    <h5 className="my-4">User Name</h5>
+                    <h5 className="my-4">Password</h5>
+                    <h5 className="my-4">Email</h5>
+                    <h5 className="my-4">Mobile</h5>
                   </div>
-                </form>
+                  <div className="col-8">
+                    <input
+                      type="text"
+                      value={formik.values.UserName}
+                      onChange={formik.handleChange}
+                      name="UserName"
+                      className="form-control my-3 w-50"
+                    />
+                    <input
+                      type="text"
+                      value={formik.values.UserId}
+                      onChange={formik.handleChange}
+                      name="UserId"
+                      className="form-control my-3 w-50"
+                    />
+                     <input
+                      type="password"
+                      value={formik.values.Password}
+                      disabled
+                      onChange={formik.handleChange}
+                      name="Pssword"
+                      className="form-control my-3 w-50"
+                    />
+                    <input
+                      type="text"
+                      value={formik.values.Email}
+                      readOnly
+                      onChange={formik.handleChange}
+                      name="Email"
+                      className="form-control my-3 w-50"
+                    />
+                    <input
+                      type="text"
+                      value={formik.values.Mobile}
+                      onChange={formik.handleChange}
+                      name="Mobile"
+                      className="form-control my-3 w-50"
+                    />
+                  </div>
+                  <div className="text-center">
+                  <button className="btn btn-success text-center">Submit</button>
+                  </div>
                 </div>
-            </Fade>
-        </Modal>
-        <Modal open={orderModalOpen} onClose={handleAllModalClose} className="d-flex justify-content-center align-items-center">
-            <Fade in={orderModalOpen}>
-            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75">
+              </form>
             </div>
-            </Fade>
+          </Fade>
         </Modal>
-        <Modal open={customerCareModalOpen} onClose={handleAllModalClose} className="d-flex justify-content-center align-items-center">
-            <Fade in={customerCareModalOpen}>
-            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75">
-            </div>
-            </Fade>
+        <Modal
+          open={orderModalOpen}
+          onClose={handleAllModalClose}
+          className="d-flex justify-content-center align-items-center"
+        >
+          <Fade in={orderModalOpen}>
+            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75"></div>
+          </Fade>
         </Modal>
-        <Modal open={logoutModalOpen} onClose={handleAllModalClose} className="d-flex justify-content-center align-items-center">
-            <Fade in={logoutModalOpen}>
-            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75">
-            </div>
-            </Fade>
+        <Modal
+          open={customerCareModalOpen}
+          onClose={handleAllModalClose}
+          className="d-flex justify-content-center align-items-center"
+        >
+          <Fade in={customerCareModalOpen}>
+            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75"></div>
+          </Fade>
+        </Modal>
+        <Modal
+          open={logoutModalOpen}
+          onClose={handleAllModalClose}
+          className="d-flex justify-content-center align-items-center"
+        >
+          <Fade in={logoutModalOpen}>
+            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75"></div>
+          </Fade>
         </Modal>
         <div className="mt-2">
           {categories.map((category) => (
