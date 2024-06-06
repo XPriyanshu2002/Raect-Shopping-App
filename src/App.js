@@ -69,7 +69,8 @@ function App() {
       </BrowserRouter> */}
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<FakeStore />}></Route>
+          <Route path="/" element={<FakeStore/>}></Route>
+          <Route path="/home" element={<FakeStore />}></Route>
           <Route path="/login" element={<Login/>}></Route>
           <Route path="/admin" element={<Admin/>}></Route>
           <Route path="/admin-dashboard" element={<Admindashboard/>}></Route>

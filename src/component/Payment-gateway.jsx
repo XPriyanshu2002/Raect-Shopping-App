@@ -13,7 +13,10 @@ export function PaymentGateway() {
     function LoadProduct() {
         axios.get("http://127.0.0.1:3210/get-products")
         .then(response=>{
+            console.log(response.data)
+
             setProduct(response.data);
+            
         }
         )
     }

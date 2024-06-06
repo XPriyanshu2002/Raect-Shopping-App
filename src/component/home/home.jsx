@@ -28,6 +28,7 @@ export function Home(){
                     <Link className='btn btn-light' to="jewelery"> Shop <span className='bi bi-arrow-right'></span> </Link>
                 </div>
             </div>
+            <Link to="/login" className='btn btn-primary'>Login</Link>
         </div>
     )
 }

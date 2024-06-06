@@ -33,7 +33,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import { PriceRange } from "./PriceRange";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, redirect, useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { Formik, useFormik } from "formik";
 
@@ -58,28 +58,62 @@ export function FakeStore() {
   const [allSuggestions, setAllSuggestions] = useState([]);
   var navigate = useNavigate();
   const [cookie, setCookie, removeCookie] = useCookies("user-id");
-  const [user, setuser] = useState([
-    { UserId: "", UserName: "", Email: "", Mobile: "" },
-  ]);
+  const [user, setuser] = useState([{UserName:"", UserId:"", Password:"", Email:"", Mobile:""}]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [customerCareModalOpen, setCustomerCareModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
-  const formik = useFormik({
-    initialValues: {
-      UserName: user[0].UserName,
-      UserId: user[0].UserId,
-      Password:user[0].Password,
-      Email: user[0].Email,
-      Mobile: user[0].Mobile,
-    },
-    enableReinitialize:true,
-    onSubmit:(values) =>{
-      console.log(values)
-    }
-  });
+  // const formik = useFormik({
+  //   initialValues: {
+  //     UserName: user[0].UserName,
+  //     UserId: user[0].UserId,
+  //     Password:user[0].Password,
+  //     Email: user[0].Email,
+  //     Mobile: user[0].Mobile
+  //   },
+  //   enableReinitialize:true,
+  //   onSubmit:(values) =>{
+  //     axios.put(`http://127.0.0.1:3210/edit-user/${values.UserId}`, values)
+  //     .then(()=>{
+  //       console.log("User Updated");
+  //       navigate("/")
+  //     })
+  //   }
+  // })
+
+  // function LoadForm() {
+  //   if (cookie["user-id"]) {
+  //     const formik = useFormik({
+  //       initialValues: {
+  //         UserName: user[0].UserName,
+  //         UserId: user[0].UserId,
+  //         Password:user[0].Password,
+  //         Email: user[0].Email,
+  //         Mobile: user[0].Mobile
+  //       },
+  //       enableReinitialize:true,
+  //       onSubmit:(values) =>{
+  //         console.log(values)
+  //       }
+  //     });
+  //   } else {
+  //     const formik = useFormik({
+  //       initialValues: {
+  //         UserName: user.UserName,
+  //         UserId: user.UserId,
+  //         Password:user.Password,
+  //         Email: user.Email,
+  //         Mobile: user.Mobile
+  //       },
+  //       enableReinitialize:true,
+  //       onSubmit:(values) =>{
+  //         console.log(values)
+  //       }
+  //     });
+  //   }
+  // }
 
   function LoadCategories() {
     axios
@@ -89,12 +123,11 @@ export function FakeStore() {
         setCategories(response.data);
       });
   }
+
   function loaduser() {
     if (cookie["user-id"] !== undefined) {
       //setuser(cookie["user-id"]);
-      document.getElementById("greet").innerText = `Welcome ${cookie[
-        "user-id"
-      ].toUpperCase()}`;
+      document.getElementById("greet").innerText = `Welcome ${cookie["user-id"].toUpperCase()}`;
       //console.log(`Welcome ${cookie["user-id"]}`);
     } else {
       document.getElementById("greet").innerText = "";
@@ -123,7 +156,7 @@ export function FakeStore() {
     loaduser();
     //console.log(searchItems);
     LoadUser();
-    console.log(user)
+    //LoadForm();
   }, []);
 
   function handleCategoryChange(e) {
@@ -269,17 +302,25 @@ export function FakeStore() {
   }
 
   function LoadUser() {
-    axios
+
+    if(cookie){
+      axios
       .get(`http://127.0.0.1:3210/get-user/${cookie["user-id"]}`)
       .then((response) => {
         let u = response.data;
         setuser(u);
+        console.log(response.data);
       });
+    }else{
+      navigate("/")
+    }
+    
   }
 
   function handleItemButtonClick(e) {
     if (e === "Profile") {
       setProfileModalOpen(true);
+      console.log(user);
     } else if (e === "Order") {
       setOrderModalOpen(true);
     } else if (e === "Customer Care") {
@@ -295,7 +336,17 @@ export function FakeStore() {
     setCustomerCareModalOpen(false);
     setLogoutModalOpen(false);
   }
+function yesClick(){
+  removeCookie("user-id")
+  navigate("/")
+  alert("Yes clicked")
+ 
 
+}
+function noClick(){
+  setLogoutModalOpen(false)
+  
+}
   return (
     <div className="container-fluid">
       <div
@@ -353,7 +404,7 @@ export function FakeStore() {
                     <ListItemText primary={text} />
                   </ListItemButton>
                 </ListItem>
-              )
+              ) 
             )}
           </List>
         </Drawer>
@@ -364,11 +415,11 @@ export function FakeStore() {
         >
           <Fade in={profileModalOpen}>
             <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75">
-              <form onSubmit={formik.handleSubmit} className="container-fluid">
+              {/* <form onSubmit={formik.handleSubmit} className="container-fluid">
                 <div className="row">
                   <div className="col-3 ms-4">
-                    <h5 className="my-4">User Id</h5>
                     <h5 className="my-4">User Name</h5>
+                    <h5 className="my-4">User Id</h5>
                     <h5 className="my-4">Password</h5>
                     <h5 className="my-4">Email</h5>
                     <h5 className="my-4">Mobile</h5>
@@ -384,6 +435,7 @@ export function FakeStore() {
                     <input
                       type="text"
                       value={formik.values.UserId}
+                      readOnly
                       onChange={formik.handleChange}
                       name="UserId"
                       className="form-control my-3 w-50"
@@ -391,7 +443,6 @@ export function FakeStore() {
                      <input
                       type="password"
                       value={formik.values.Password}
-                      disabled
                       onChange={formik.handleChange}
                       name="Pssword"
                       className="form-control my-3 w-50"
@@ -413,10 +464,10 @@ export function FakeStore() {
                     />
                   </div>
                   <div className="text-center">
-                  <button className="btn btn-success text-center">Submit</button>
+                  <button className="btn btn-success text-center" type="submit">Submit</button>
                   </div>
                 </div>
-              </form>
+              </form> */}
             </div>
           </Fade>
         </Modal>
@@ -444,7 +495,16 @@ export function FakeStore() {
           className="d-flex justify-content-center align-items-center"
         >
           <Fade in={logoutModalOpen}>
-            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75"></div>
+            <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75 d-flex justify-content-center align-items-center">
+              <div className="alert alert-danger w-25">
+                <p>Confirm logout</p>
+                <div className="d-flex justify-content-between">
+                  <button className="btn btn-success" onClick={yesClick}>Yes</button>
+                  <button className="btn btn-danger" onClick={noClick}>No</button>
+                </div>
+                
+              </div>
+            </div>
           </Fade>
         </Modal>
         <div className="mt-2">

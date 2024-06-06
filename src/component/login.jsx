@@ -26,7 +26,7 @@ export function Login() {
                 .then(()=>{
                     alert("Congragulations You have Registered!");
                     setCookie("user-id",RegisterInput.UserName);
-                    navigate("/");
+                    navigate("/home");
                 })
             
         }
@@ -52,7 +52,7 @@ export function Login() {
                                 if (user) {
                                     if (user.Password===userDetails.Password) {
                                         setCookie("user-id",user.UserName);
-                                        navigate("/");
+                                        navigate("/home");
                                     } else {
                                         alert("Invalid Password");
                                     }
