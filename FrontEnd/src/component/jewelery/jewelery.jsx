@@ -8,12 +8,12 @@ export function Jewelery(){
 
     const [Jewelery, setJewelery] = useState([{id:0, title:'', price:'', image:'', description:'', category:'', rating:{rate:0, count:0}}]);
 
-    const [cookies, setCookie, removeCookie] = useCookies('userid');
+    const [cookies, setCookie, removeCookie] = useCookies('user-id');
 
     let navigate = useNavigate();
 
     useEffect(()=>{
-        if(cookies['userid'])
+        if(cookies['user-id'])
         {
             axios.get('https://fakestoreapi.com/products/category/jewelery')
             .then(response=> {
@@ -25,7 +25,7 @@ export function Jewelery(){
     },[]);
 
     function handleSignout(){
-        removeCookie('userid');
+        removeCookie('user-id');
         navigate('/login');
     }
 

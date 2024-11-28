@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { useFormik } from "formik";
 import { useState } from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
 
 export function Login() {
 
@@ -21,16 +21,24 @@ export function Login() {
                                       Mobile:yup.string().required("Mobile No. Required").matches(/\d{10}/,"Please Enter a Valid Mobile No.")
                                     }),
         onSubmit:(RegisterInput)=>{
-           
-                axios.post("http://127.0.0.1:3210/register-user", RegisterInput)
-                .then(()=>{
-                    alert("Congragulations You have Registered!");
-                    setCookie("user-id",RegisterInput.UserName);
-                    navigate("/home");
+            axios.get("http://127.0.0.1:3210/users")
+            .then(response=>{
+                let users = response.data.map(u=>u.Mobile);
+                console.log(users);
+                if (users.includes(RegisterInput.Mobile)) {
+                    alert("Mobile Already Exists");
+                } else {
+                    axios.post("http://127.0.0.1:3210/register-user", RegisterInput)
+                    .then(()=>{
+                        alert("Congragulations You have Registered!");
+                        setCookie("user-id",RegisterInput.UserName);
+                        navigate("/home");
                 })
-            
+                }
+            })
         }
     })
+
     function signUpclick(){
         setView(true);
 

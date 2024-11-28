@@ -36,6 +36,7 @@ import { PriceRange } from "./PriceRange";
 import { Link, redirect, useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
 import { Formik, useFormik } from "formik";
+import * as yup from "yup";
 
 export function FakeStore() {
   const [categories, setCategories] = useState([]);
@@ -58,30 +59,45 @@ export function FakeStore() {
   const [allSuggestions, setAllSuggestions] = useState([]);
   var navigate = useNavigate();
   const [cookie, setCookie, removeCookie] = useCookies("user-id");
-  const [user, setuser] = useState([{UserName:"", UserId:"", Password:"", Email:"", Mobile:""}]);
+  const [user, setuser] = useState([
+    { UserName: "", UserId: "", Password: "", Email: "", Mobile: "" },
+  ]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [customerCareModalOpen, setCustomerCareModalOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
-  // const formik = useFormik({
-  //   initialValues: {
-  //     UserName: user[0].UserName,
-  //     UserId: user[0].UserId,
-  //     Password:user[0].Password,
-  //     Email: user[0].Email,
-  //     Mobile: user[0].Mobile
-  //   },
-  //   enableReinitialize:true,
-  //   onSubmit:(values) =>{
-  //     axios.put(`http://127.0.0.1:3210/edit-user/${values.UserId}`, values)
-  //     .then(()=>{
-  //       console.log("User Updated");
-  //       navigate("/")
-  //     })
-  //   }
-  // })
+  const formik = useFormik({
+    initialValues: {
+      UserName: user[0].UserName,
+      UserId: user[0].UserId,
+      Password: user[0].Password,
+      Email: user[0].Email,
+      Mobile: user[0].Mobile,
+    },
+    validationSchema: yup.object({
+      UserName: yup.string().required("Required"),
+      UserId: yup.string().required("Required"),
+      Password: yup.string().required("Required"),
+      Email: yup.string().required("Required"),
+      Mobile: yup
+        .string()
+        .required("Required")
+        .matches(/\d{10}/, "Please Enter a Valid Mobile No."),
+    }),
+    enableReinitialize: true,
+    onSubmit: (values) => {
+      axios
+        .put(`http://127.0.0.1:3210/edit-user/${values.UserId}`, values)
+        .then(() => {
+          console.log("User Updated");
+          //navigate("/home");
+          setProfileModalOpen(false);
+          setDrawerOpen(false);
+        });
+    },
+  });
 
   // function LoadForm() {
   //   if (cookie["user-id"]) {
@@ -124,10 +140,12 @@ export function FakeStore() {
       });
   }
 
-  function loaduser() {
+  function DisplayUser() {
     if (cookie["user-id"] !== undefined) {
       //setuser(cookie["user-id"]);
-      document.getElementById("greet").innerText = `Welcome ${cookie["user-id"].toUpperCase()}`;
+      document.getElementById("greet").innerText = `Welcome ${cookie[
+        "user-id"
+      ].toUpperCase()}`;
       //console.log(`Welcome ${cookie["user-id"]}`);
     } else {
       document.getElementById("greet").innerText = "";
@@ -148,15 +166,17 @@ export function FakeStore() {
   }
 
   useEffect(() => {
-    LoadCategories();
-    LoadProducts("https://fakestoreapi.com/products");
-    LoadTitle();
-    LoadAllSuggestions();
-    //console.log(cookie["user-id"])
-    loaduser();
-    //console.log(searchItems);
-    LoadUser();
-    //LoadForm();
+    if (cookie["user-id"]) {
+      LoadCategories();
+      LoadProducts("https://fakestoreapi.com/products");
+      LoadTitle();
+      LoadAllSuggestions();
+      DisplayUser();
+      LoadUser();
+      Cart();
+    } else {
+      navigate("*");
+    }
   }, []);
 
   function handleCategoryChange(e) {
@@ -183,8 +203,23 @@ export function FakeStore() {
     }
   }
 
+  async function Cart() {
+    await axios
+      .get(`http://127.0.0.1:3210/get-user/${cookie["user-id"]}`)
+      .then((response) => {
+        let user = parseInt(response.data.map((u) => u.Mobile));
+        axios
+          .get(`http://127.0.0.1:3210/get-products/${user}`)
+          .then((response) => {
+            setCartItems(response.data);
+            setCartCount(response.data.length);
+          });
+      });
+  }
+
   function handleAddClick(product) {
     setCartCount(cartCount + 1);
+    product.userRef = parseInt(user.map((u) => u.Mobile));
     cartItems.push(product);
     if (totalPrice == 0) {
       setTotalPrice(product.price);
@@ -201,8 +236,15 @@ export function FakeStore() {
     setModalOpen(false);
   }
 
-  function handleRemoveClick(item) {
-    cartItems.splice(cartItems.indexOf(item), 1);
+  async function handleRemoveClick(item) {
+    console.log(item.userRef);
+    // await axios.delete(`http://127.0.0.1:3210/delete-product/${item.userRef}`)
+    // .then(()=>{
+    //   //Cart();
+    // })
+    // //cartItems.splice(cartItems.indexOf(item), 1);
+    // console.log(cartItems);
+
     setCartCount(cartItems.length);
     setTotalPrice(totalPrice - item.price);
   }
@@ -273,6 +315,7 @@ export function FakeStore() {
       setAllSuggestions(b);
     });
   }
+
   function signoutclick() {
     removeCookie("user-id");
   }
@@ -282,6 +325,7 @@ export function FakeStore() {
       alert("Cart is Empty!");
     } else {
       if (cookie["user-id"]) {
+        //cartItems.unshift(user.map(u=>u.Mobile));
         axios.post("http://127.0.0.1:3210/post-product", cartItems).then(() => {
           console.log("Items Added to Database");
         });
@@ -294,7 +338,6 @@ export function FakeStore() {
 
   function handleDrawerClick() {
     setDrawerOpen(true);
-    console.log(user);
   }
 
   function handleDrawerClose() {
@@ -302,25 +345,21 @@ export function FakeStore() {
   }
 
   function LoadUser() {
-
-    if(cookie){
+    if (cookie) {
       axios
-      .get(`http://127.0.0.1:3210/get-user/${cookie["user-id"]}`)
-      .then((response) => {
-        let u = response.data;
-        setuser(u);
-        console.log(response.data);
-      });
-    }else{
-      navigate("/")
+        .get(`http://127.0.0.1:3210/get-user/${cookie["user-id"]}`)
+        .then((response) => {
+          let u = response.data;
+          setuser(u);
+        });
+    } else {
+      navigate("/");
     }
-    
   }
 
   function handleItemButtonClick(e) {
     if (e === "Profile") {
       setProfileModalOpen(true);
-      console.log(user);
     } else if (e === "Order") {
       setOrderModalOpen(true);
     } else if (e === "Customer Care") {
@@ -336,17 +375,20 @@ export function FakeStore() {
     setCustomerCareModalOpen(false);
     setLogoutModalOpen(false);
   }
-function yesClick(){
-  removeCookie("user-id")
-  navigate("/")
-  alert("Yes clicked")
- 
+  function yesClick() {
+    removeCookie("user-id");
+    navigate("/");
+    //alert("Yes clicked");
+  }
+  function noClick() {
+    setLogoutModalOpen(false);
+  }
 
-}
-function noClick(){
-  setLogoutModalOpen(false)
-  
-}
+  function handleProfileCancle() {
+    setProfileModalOpen(false);
+    //setDrawerOpen(false);
+  }
+
   return (
     <div className="container-fluid">
       <div
@@ -404,7 +446,7 @@ function noClick(){
                     <ListItemText primary={text} />
                   </ListItemButton>
                 </ListItem>
-              ) 
+              )
             )}
           </List>
         </Drawer>
@@ -415,7 +457,7 @@ function noClick(){
         >
           <Fade in={profileModalOpen}>
             <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75">
-              {/* <form onSubmit={formik.handleSubmit} className="container-fluid">
+              <form onSubmit={formik.handleSubmit} className="container-fluid">
                 <div className="row">
                   <div className="col-3 ms-4">
                     <h5 className="my-4">User Name</h5>
@@ -432,6 +474,7 @@ function noClick(){
                       name="UserName"
                       className="form-control my-3 w-50"
                     />
+                    <div className="text-danger">{formik.errors.UserName}</div>
                     <input
                       type="text"
                       value={formik.values.UserId}
@@ -440,13 +483,15 @@ function noClick(){
                       name="UserId"
                       className="form-control my-3 w-50"
                     />
-                     <input
+                    <div className="text-danger">{formik.errors.UserId}</div>
+                    <input
                       type="password"
                       value={formik.values.Password}
                       onChange={formik.handleChange}
                       name="Pssword"
                       className="form-control my-3 w-50"
                     />
+                    <div className="text-danger">{formik.errors.Password}</div>
                     <input
                       type="text"
                       value={formik.values.Email}
@@ -455,6 +500,7 @@ function noClick(){
                       name="Email"
                       className="form-control my-3 w-50"
                     />
+                    <div className="text-danger">{formik.errors.Email}</div>
                     <input
                       type="text"
                       value={formik.values.Mobile}
@@ -462,12 +508,26 @@ function noClick(){
                       name="Mobile"
                       className="form-control my-3 w-50"
                     />
+                    <div className="text-danger">{formik.errors.Mobile}</div>
                   </div>
-                  <div className="text-center">
-                  <button className="btn btn-success text-center" type="submit">Submit</button>
+                  <div className="text-center mt-4">
+                    <button
+                      className="btn btn-success mx-3 text-center"
+                      type="submit"
+                    >
+                      Submit
+                    </button>
+                    <button
+                      className="btn btn-danger "
+                      style={{ marginRight: "170px" }}
+                      type="cancle"
+                      onClick={handleProfileCancle}
+                    >
+                      Cancle
+                    </button>
                   </div>
                 </div>
-              </form> */}
+              </form>
             </div>
           </Fade>
         </Modal>
@@ -497,17 +557,20 @@ function noClick(){
           <Fade in={logoutModalOpen}>
             <div className="modal-content modal-dialog-scrollable bg-white h-75 w-75 d-flex justify-content-center align-items-center">
               <div className="alert alert-danger w-25">
-                <p>Confirm logout</p>
+                <p>Confirm Logout</p>
                 <div className="d-flex justify-content-between">
-                  <button className="btn btn-success" onClick={yesClick}>Yes</button>
-                  <button className="btn btn-danger" onClick={noClick}>No</button>
+                  <button className="btn btn-success" onClick={yesClick}>
+                    Yes
+                  </button>
+                  <button className="btn btn-danger" onClick={noClick}>
+                    No
+                  </button>
                 </div>
-                
               </div>
             </div>
           </Fade>
         </Modal>
-        <div className="mt-2">
+        <div className="mt-2 me-5">
           {categories.map((category) => (
             <Button
               key={category}
@@ -548,6 +611,7 @@ function noClick(){
               alignItems: "center",
               width: 500,
               ml: "550px",
+              mt: "-20px",
             }}
           >
             <Autocomplete
@@ -592,7 +656,7 @@ function noClick(){
         </div>
         <div
           className="col-10 d-flex flex-wrap overflow-auto"
-          style={{ height: "700px", marginTop: "130px" }}
+          style={{ height: "700px", marginTop: "100px" }}
         >
           {products.map((product) => (
             <div

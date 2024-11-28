@@ -47,7 +47,7 @@ app.post("/register-user", (req, res) => {
     UserName: req.body.UserName,
     Password: req.body.Password,
     Email: req.body.Email,
-    Mobile: req.body.Mobile,
+    Mobile: parseInt(req.body.Mobile),
   };
 
   mongoClient.connect(conStr).then((clientObject) => {
@@ -94,7 +94,7 @@ app.post("/post-product",(req,res)=>{
   //       image: req.body.map(p=>p.image),
   //       rating: req.body.map(p=>p.rating),
   // };
-
+  
   var products = req.body.map(p=>p);
 
   mongoClient.connect(conStr)
@@ -108,17 +108,31 @@ app.post("/post-product",(req,res)=>{
   });
 });
 
-app.get("/get-products",(req,res)=>{
+app.get("/get-products/:userRef",(req,res)=>{
+  let ref = parseInt(req.params.userRef);
   mongoClient.connect(conStr)
   .then(ClientObject=>{
     var dataBase = ClientObject.db("online-shopping");
-    dataBase.collection("tblProducts").find({}).toArray()
+    dataBase.collection("tblProducts").find({userRef:ref}).toArray()
     .then(document=>{
       res.send(document);
       res.end();
     });
   });
 });
+
+app.delete("/delete-product/:id",(req,res)=>{
+  let ref = parseInt(req.params.id);
+  mongoClient.connect(conStr)
+  .then(ClientObject=>{
+    var dataBase = ClientObject.db("online-shopping");
+    dataBase.collection("tblProducts").findOneAndDelete({id:ref})
+    .then(()=>{
+      console.log("Product Deleted");
+      res.end();
+    })
+  })
+})
 
 app.put('/edit-user/:id',(req,res)=>{
   var id = req.params.id;

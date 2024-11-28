@@ -1,41 +1,59 @@
 import { Card, CardContent, CardHeader, CardMedia } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
+import { useNavigate } from "react-router-dom";
 
 export function PaymentGateway() {
 
     const [product, setProduct] = useState([]);
     const [price, setPrice] = useState([]);
-    const [pri, setPri] = useState();
-    const [num, setNum] = useState();
+    // const [pri, setPri] = useState();
+    // const [num, setNum] = useState();
     const [totalPrice, setTotalPrice] = useState();
+    const [cookie, setCookie, removeCookie] = useCookies("user-id");
+    var navigate = useNavigate();
 
     function LoadProduct() {
-        axios.get("http://127.0.0.1:3210/get-products")
+        axios.get(`http://127.0.0.1:3210/get-user/${cookie["user-id"]}`)
         .then(response=>{
-            console.log(response.data)
-
-            setProduct(response.data);
-            
-        }
-        )
-    }
-
-    function LoadPrice() {
-        axios.get("http://127.0.0.1:3210/get-products")
-        .then(response=>{
-            let price = response.data.map(p=>p.price);
-            setPrice(price);
-            //console.log(response.data.map(p=>p.price));
-            ProductNumber();
-            let total = price.reduce((t)=>t);
-            console.log(price);
+            let user = parseInt(response.data.map(u=>u.Mobile));
+            axios.get(`http://127.0.0.1:3210/get-products/${user}`)
+            .then(response=>{
+                let price = response.data.map(p=>p.price);
+                setPrice(price);
+                setProduct(response.data);
+                ProductNumber();
+            })
         })
     }
 
-    // function TotalPrice() {
-    //     product
+    // function LoadPrice() {
+    //     axios.get(`http://127.0.0.1:3210/get-user/${cookie["user-id"]}`)
+    //     .then(response=>{
+    //         let userRef = parseInt(response.data.map(u=>u.Mobile));
+    //         axios.get(`http://127.0.0.1:3210/get-products/${userRef}`)
+    //         .then(response=>{
+    //             let price = response.data.map(p=>p.price);
+    //             setPrice(price);
+    //             ProductNumber();
+    //             let total = price.reduce((t)=>t);
+    //         })
+    //     })       
     // }
+
+
+    function TotalPrice() {
+        var v = price.map(p=>p);
+        console.log(v);
+        var j = 0;
+        //console.log(price.map(p=>p));
+        for (let i = 0; i < price.length; i++) {
+             j += v[i];
+            console.log(j);
+            setTotalPrice(j);
+        }
+    }
 
     function ProductNumber() {
         console.log("ProductNumber Start");
@@ -49,31 +67,31 @@ export function PaymentGateway() {
 
         let n = "";
         let p = "";
-        for(let i = 1; i<=product.length; i++) {
+        for(let i = 1; i<=price.length; i++) {
             n += "Product" + i + "<br/>";
-            //console.log(i);
             console.log(n);
         }
-        document.getElementById("productNumber").innerHTML = n;
-        //setNum(n);
-        //console.log(num);
 
-        for(let i=0; i<product.length; i++) {
+        document.getElementById("productNumber").innerHTML = n;
+
+        for(let i=0; i<price.length; i++) {
             
             p += "$" + price[i] + "<br/>";
             console.log(price[i]);
-            //console.log(p);
-            //setPri(price[i]);
-        }        
+        }
+
         document.getElementById("productPrice").innerHTML = p;
-        //setPri(p);
-        //console.log(pri);
-        console.log("ProductNumner Exit");
+        console.log("ProductNumber End");
     }
 
     useEffect(()=>{
-        LoadProduct();
-        LoadPrice();       
+        if (cookie["user-id"]) {
+            LoadProduct();
+            //LoadPrice();
+            TotalPrice();
+        } else {
+            navigate("*");
+        }       
     },[])
 
     return (
@@ -100,7 +118,7 @@ export function PaymentGateway() {
                         </div>
                         <div className="d-flex justify-content-center align-items-center w-100">
                             <span className="h3 mt-5 mx-5">Grand Total</span>
-                            <span className="h3 mt-5 mx-5">{}</span>
+                            <span className="h3 mt-5 mx-5">{`$${totalPrice}`}</span>
                         </div>
                     </div>
                 </div>
